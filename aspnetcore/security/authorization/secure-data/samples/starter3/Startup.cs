@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using ContactManager.Authorization;
 
 namespace ContactManager
 {
@@ -39,6 +40,7 @@ namespace ContactManager
 
             services.AddRazorPages();
 
+            // Set the default authentication policy to require users to be authenticated.
             services.AddControllers(config =>
             {
                 // using Microsoft.AspNetCore.Mvc.Authorization;
@@ -48,6 +50,15 @@ namespace ContactManager
                                  .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
+
+            // Register the authorization handlers for dependency injection.
+            // The last two are singletons because they don't use EF and all the 
+            // information needed is in the Context parameter.
+            services.AddScoped<IAuthorizationHandler, ContactIsOwnerAuthorizationHandler>();
+
+            services.AddSingleton<IAuthorizationHandler, ContactAdministratorsAuthorizationHandler>();
+
+            services.AddSingleton<IAuthorizationHandler, ContactManagerAuthorizationHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
